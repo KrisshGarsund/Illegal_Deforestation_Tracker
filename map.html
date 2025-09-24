@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Dashboard - Illegal Deforestation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #28a745; }
+        .btn-info { background: #17a2b8; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn:hover { opacity: 0.8; }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1rem;
+            padding: 1rem;
+            height: calc(100vh - 80px);
+        }
+        .map-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .map-header {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .map-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        #map {
+            height: calc(100% - 60px);
+            width: 100%;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+        }
+        .card h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .incident-item {
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+        }
+        .incident-item h4 {
+            margin: 0 0 0.25rem 0;
+            color: #333;
+        }
+        .incident-item p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .controls button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .controls button:hover {
+            background: #f8f9fa;
+        }
+        .controls button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Map Dashboard</h1>
+        <div class="nav-buttons">
+            <a href="auth.html" class="btn btn-primary">Login</a>
+            <a href="incidents.html" class="btn btn-success">Incidents</a>
+            <a href="detection.html" class="btn btn-info">Detection</a>
+            <a href="assistant.html" class="btn btn-warning">Assistant</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="map-container">
+            <div class="map-header">
+                <h2>Deforestation Incidents Map</h2>
+                <div class="controls">
+                    <button onclick="loadIncidents()" class="btn">Refresh</button>
+                    <button onclick="toggleHeatmap()" class="btn">Heatmap</button>
+                    <button onclick="centerMap()" class="btn">Center</button>
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <div class="sidebar">
+            <div class="card">
+                <h3>📊 Statistics</h3>
+                <div id="stats">
+                    <p>Total Incidents: <span id="totalIncidents">0</span></p>
+                    <p>High Severity: <span id="highSeverity">0</span></p>
+                    <p>Recent: <span id="recentIncidents">0</span></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📋 Recent Incidents</h3>
+                <div id="incidentsList">
+                    <p>No incidents found. Click "Refresh" to load data.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Quick Actions</h3>
+                <button onclick="window.location.href='detection.html'" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;">Upload New Data</button>
+                <button onclick="window.location.href='prediction.html'" class="btn btn-success" style="width: 100%; margin-bottom: 0.5rem;">Predict Hotspots</button>
+                <button onclick="window.location.href='routing.html'" class="btn btn-info" style="width: 100%;">Plan Route</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let incidents = [];
+        let markers = [];
+
+        // Initialize map
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 20.5, lng: 78.9 },
+                zoom: 5,
+                mapTypeId: 'satellite'
+            });
+        }
+
+        // Load incidents from API
+        async function loadIncidents() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8001/api/incidents', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    incidents = await response.json();
+                    displayIncidents();
+                    updateStats();
+                } else {
+                    console.error('Failed to load incidents');
+                }
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+            }
+        }
+
+        // Display incidents on map
+        function displayIncidents() {
+            // Clear existing markers
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+
+            incidents.forEach(incident => {
+                const [lat, lng] = incident.centroid || [incident.lat, incident.lng];
+                
+                const marker = new google.maps.Marker({
+                    position: { lat, lng },
+                    map: map,
+                    title: `${incident.case_id} - Severity: ${incident.severity}`,
+                    icon: {
+                        url: getMarkerIcon(incident.severity),
+                        scaledSize: new google.maps.Size(30, 30)
+                    }
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div>
+                            <h4>${incident.case_id}</h4>
+                            <p><strong>Severity:</strong> ${incident.severity}</p>
+                            <p><strong>Location:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+                            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+
+                markers.push(marker);
+            });
+
+            // Update incidents list
+            updateIncidentsList();
+        }
+
+        // Get marker icon based on severity
+        function getMarkerIcon(severity) {
+            if (severity > 50) return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTIiIGZpbGw9IiNmZjAwMDAiLz4KPC9zdmc+';
+            if (severity > 20) return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTIiIGZpbGw9IiNmZmF1MDAiLz4KPC9zdmc+';
+            return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTIiIGZpbGw9IiMwMGZmMDAiLz4KPC9zdmc+';
+        }
+
+        // Update incidents list
+        function updateIncidentsList() {
+            const listContainer = document.getElementById('incidentsList');
+            
+            if (incidents.length === 0) {
+                listContainer.innerHTML = '<p>No incidents found.</p>';
+                return;
+            }
+
+            const sortedIncidents = incidents.sort((a, b) => b.severity - a.severity);
+            listContainer.innerHTML = sortedIncidents.slice(0, 5).map(incident => `
+                <div class="incident-item">
+                    <h4>${incident.case_id}</h4>
+                    <p>Severity: ${incident.severity}</p>
+                    <p>Location: ${incident.centroid[0].toFixed(3)}, ${incident.centroid[1].toFixed(3)}</p>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalIncidents').textContent = incidents.length;
+            document.getElementById('highSeverity').textContent = incidents.filter(i => i.severity > 30).length;
+            document.getElementById('recentIncidents').textContent = incidents.length; // Simplified for demo
+        }
+
+        // Toggle heatmap view
+        function toggleHeatmap() {
+            // This would implement heatmap functionality
+            alert('Heatmap feature coming soon!');
+        }
+
+        // Center map on all incidents
+        function centerMap() {
+            if (incidents.length === 0) return;
+            
+            const bounds = new google.maps.LatLngBounds();
+            incidents.forEach(incident => {
+                const [lat, lng] = incident.centroid || [incident.lat, incident.lng];
+                bounds.extend({ lat, lng });
+            });
+            map.fitBounds(bounds);
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            initMap();
+            loadIncidents();
+        };
+    </script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
+</body>
+</html>

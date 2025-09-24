@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Illegal Deforestation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #28a745; }
+        .btn-info { background: #17a2b8; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn:hover { opacity: 0.8; }
+        .main-content {
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .chat-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            background: #f8f9fa;
+            border-radius: 10px 10px 0 0;
+        }
+        .chat-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .message {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        .message.assistant {
+            background: #f8f9fa;
+            color: #333;
+            align-self: flex-start;
+            border: 1px solid #dee2e6;
+            border-bottom-left-radius: 5px;
+        }
+        .message.system {
+            background: #e3f2fd;
+            color: #1976d2;
+            align-self: center;
+            text-align: center;
+            font-style: italic;
+        }
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 1rem;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+        .chat-input button {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .chat-input button:hover {
+            background: #5a6fd8;
+        }
+        .chat-input button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .quick-actions {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .quick-actions h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .quick-btn {
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .quick-btn:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+        .quick-btn h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .quick-btn p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-style: italic;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #666;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        .suggestions {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .suggestions h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .suggestion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .suggestion-tag {
+            padding: 0.5rem 1rem;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .suggestion-tag:hover {
+            background: #1976d2;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Assistant</h1>
+        <div class="nav-buttons">
+            <a href="auth.html" class="btn btn-primary">Login</a>
+            <a href="map.html" class="btn btn-success">Map</a>
+            <a href="incidents.html" class="btn btn-info">Incidents</a>
+            <a href="detection.html" class="btn btn-warning">Detection</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="quick-actions">
+            <h3>🚀 Quick Actions</h3>
+            <div class="quick-buttons">
+                <div class="quick-btn" onclick="askQuestion('How do I upload satellite data?')">
+                    <h4>📤 Upload Data</h4>
+                    <p>Learn how to upload and process satellite imagery</p>
+                </div>
+                <div class="quick-btn" onclick="askQuestion('What is deforestation detection?')">
+                    <h4>🔍 Detection</h4>
+                    <p>Understand how deforestation detection works</p>
+                </div>
+                <div class="quick-btn" onclick="askQuestion('How do I interpret incident severity?')">
+                    <h4>📊 Severity</h4>
+                    <p>Learn about incident severity scoring</p>
+                </div>
+                <div class="quick-btn" onclick="askQuestion('How do I use the map features?')">
+                    <h4>🗺️ Map Features</h4>
+                    <p>Explore map visualization tools</p>
+                </div>
+                <div class="quick-btn" onclick="askQuestion('What are hotspots and how are they predicted?')">
+                    <h4>🎯 Hotspots</h4>
+                    <p>Learn about hotspot prediction</p>
+                </div>
+                <div class="quick-btn" onclick="askQuestion('How do I plan routes for field visits?')">
+                    <h4>🛣️ Routing</h4>
+                    <p>Plan optimal routes for field work</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="suggestions">
+            <h3>💡 Suggested Questions</h3>
+            <div class="suggestion-tags">
+                <span class="suggestion-tag" onclick="askQuestion('What is the best threshold for deforestation detection?')">Detection Threshold</span>
+                <span class="suggestion-tag" onclick="askQuestion('How accurate is the AI detection system?')">Accuracy</span>
+                <span class="suggestion-tag" onclick="askQuestion('What file formats are supported?')">File Formats</span>
+                <span class="suggestion-tag" onclick="askQuestion('How do I export my results?')">Export Data</span>
+                <span class="suggestion-tag" onclick="askQuestion('What is NDVI and how is it used?')">NDVI</span>
+                <span class="suggestion-tag" onclick="askQuestion('How often should I run detection?')">Frequency</span>
+                <span class="suggestion-tag" onclick="askQuestion('Can I integrate this with other systems?')">Integration</span>
+                <span class="suggestion-tag" onclick="askQuestion('What are the system requirements?')">Requirements</span>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>💬 Chat with AI Assistant</h2>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message system">
+                    👋 Hello! I'm your AI assistant for the Deforestation Tracker. I can help you with detection, analysis, and using the system features. What would you like to know?
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span>Assistant is typing</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Ask me anything about deforestation detection..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" id="sendButton">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isTyping = false;
+
+        // Handle Enter key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !isTyping) {
+                sendMessage();
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                const response = await askAssistant(message);
+                addMessage(response, 'assistant');
+            } catch (error) {
+                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                console.error('Assistant error:', error);
+            } finally {
+                hideTypingIndicator();
+            }
+        }
+
+        // Ask a specific question
+        function askQuestion(question) {
+            document.getElementById('messageInput').value = question;
+            sendMessage();
+        }
+
+        // Add message to chat
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            isTyping = true;
+            document.getElementById('typingIndicator').style.display = 'flex';
+            document.getElementById('sendButton').disabled = true;
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            isTyping = false;
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('sendButton').disabled = false;
+        }
+
+        // Ask assistant
+        async function askAssistant(question) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Please login first');
+            }
+
+            const response = await fetch('http://127.0.0.1:8001/api/assistant', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data.reply || 'No response received.';
+            } else {
+                throw new Error('Failed to get response from assistant');
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            // Check authentication
+            if (!localStorage.getItem('token')) {
+                window.location.href = 'auth.html';
+            }
+        };
+    </script>
+</body>
+</html>

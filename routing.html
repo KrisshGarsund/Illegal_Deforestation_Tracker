@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routing - Illegal Deforestation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #28a745; }
+        .btn-info { background: #17a2b8; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn:hover { opacity: 0.8; }
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .routing-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+        .map-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .map-header {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .map-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .route-form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .route-form h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .coordinate-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        .add-goal-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border: 1px dashed #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .add-goal-btn:hover {
+            background: #e9ecef;
+        }
+        .goal-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+        .goal-item input {
+            flex: 1;
+            margin: 0;
+        }
+        .remove-goal {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+        }
+        .route-results {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .route-results.show {
+            display: block;
+        }
+        .route-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .stat-item h4 {
+            margin: 0 0 0.5rem 0;
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        .stat-item p {
+            margin: 0;
+            color: #666;
+        }
+        .route-steps {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .route-step {
+            padding: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .route-step:last-child {
+            border-bottom: none;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .step-coords {
+            color: #666;
+            font-family: monospace;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛣️ Route Planning</h1>
+        <div class="nav-buttons">
+            <a href="auth.html" class="btn btn-primary">Login</a>
+            <a href="map.html" class="btn btn-success">Map</a>
+            <a href="incidents.html" class="btn btn-info">Incidents</a>
+            <a href="assistant.html" class="btn btn-warning">Assistant</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="routing-container">
+            <div class="map-section">
+                <div class="map-header">
+                    <h2>Route Visualization</h2>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <div class="controls-section">
+                <div class="route-form">
+                    <h3>📍 Plan Your Route</h3>
+                    
+                    <div class="form-group">
+                        <label>Starting Point:</label>
+                        <div class="coordinate-inputs">
+                            <input type="number" id="startLat" placeholder="Latitude" step="0.0001">
+                            <input type="number" id="startLng" placeholder="Longitude" step="0.0001">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Goals (Destinations):</label>
+                        <div id="goalsList">
+                            <div class="goal-item">
+                                <input type="number" placeholder="Latitude" step="0.0001" class="goal-lat">
+                                <input type="number" placeholder="Longitude" step="0.0001" class="goal-lng">
+                                <button type="button" class="remove-goal" onclick="removeGoal(this)">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-goal-btn" onclick="addGoal()">+ Add Destination</button>
+                    </div>
+
+                    <button onclick="calculateRoute()" class="btn btn-primary" style="width: 100%; padding: 1rem;">🚀 Calculate Route</button>
+                </div>
+
+                <div id="loadingSection" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Calculating optimal route...</p>
+                </div>
+
+                <div id="routeResults" class="route-results">
+                    <h3>📊 Route Results</h3>
+                    <div class="route-stats">
+                        <div class="stat-item">
+                            <h4 id="totalDistance">0</h4>
+                            <p>Total Distance (km)</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4 id="waypoints">0</h4>
+                            <p>Waypoints</p>
+                        </div>
+                    </div>
+                    <div class="route-steps" id="routeSteps">
+                        <!-- Route steps will be populated here -->
+                    </div>
+                    <button onclick="exportRoute()" class="btn btn-success" style="width: 100%; margin-top: 1rem;">📤 Export Route</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let routePolyline;
+        let markers = [];
+
+        // Initialize map
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 20.5, lng: 78.9 },
+                zoom: 6,
+                mapTypeId: 'terrain'
+            });
+
+            // Add click listener to set coordinates
+            map.addListener('click', function(event) {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                
+                // If no start point is set, set it
+                if (!document.getElementById('startLat').value) {
+                    document.getElementById('startLat').value = lat.toFixed(4);
+                    document.getElementById('startLng').value = lng.toFixed(4);
+                } else {
+                    // Add as goal
+                    addGoalWithCoords(lat, lng);
+                }
+            });
+        }
+
+        // Add goal input
+        function addGoal() {
+            const goalsList = document.getElementById('goalsList');
+            const goalItem = document.createElement('div');
+            goalItem.className = 'goal-item';
+            goalItem.innerHTML = `
+                <input type="number" placeholder="Latitude" step="0.0001" class="goal-lat">
+                <input type="number" placeholder="Longitude" step="0.0001" class="goal-lng">
+                <button type="button" class="remove-goal" onclick="removeGoal(this)">×</button>
+            `;
+            goalsList.appendChild(goalItem);
+        }
+
+        // Add goal with specific coordinates
+        function addGoalWithCoords(lat, lng) {
+            const goalsList = document.getElementById('goalsList');
+            const goalItem = document.createElement('div');
+            goalItem.className = 'goal-item';
+            goalItem.innerHTML = `
+                <input type="number" placeholder="Latitude" step="0.0001" class="goal-lat" value="${lat.toFixed(4)}">
+                <input type="number" placeholder="Longitude" step="0.0001" class="goal-lng" value="${lng.toFixed(4)}">
+                <button type="button" class="remove-goal" onclick="removeGoal(this)">×</button>
+            `;
+            goalsList.appendChild(goalItem);
+        }
+
+        // Remove goal
+        function removeGoal(button) {
+            button.parentElement.remove();
+        }
+
+        // Calculate route
+        async function calculateRoute() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            const startLat = parseFloat(document.getElementById('startLat').value);
+            const startLng = parseFloat(document.getElementById('startLng').value);
+            
+            if (!startLat || !startLng) {
+                alert('Please enter starting coordinates');
+                return;
+            }
+
+            const goals = [];
+            const goalItems = document.querySelectorAll('.goal-item');
+            goalItems.forEach(item => {
+                const lat = parseFloat(item.querySelector('.goal-lat').value);
+                const lng = parseFloat(item.querySelector('.goal-lng').value);
+                if (lat && lng) {
+                    goals.push([lat, lng]);
+                }
+            });
+
+            if (goals.length === 0) {
+                alert('Please add at least one destination');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('routeResults').classList.remove('show');
+
+            try {
+                const response = await fetch('http://127.0.0.1:8001/api/route', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        start: [startLat, startLng],
+                        goals: goals
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayRoute(data, [startLat, startLng], goals);
+                } else {
+                    throw new Error('Route calculation failed');
+                }
+            } catch (error) {
+                console.error('Routing error:', error);
+                alert('Route calculation failed: ' + error.message);
+            } finally {
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        // Display route on map
+        function displayRoute(routeData, start, goals) {
+            // Clear existing markers and polyline
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            if (routePolyline) {
+                routePolyline.setMap(null);
+            }
+
+            // Add start marker
+            const startMarker = new google.maps.Marker({
+                position: { lat: start[0], lng: start[1] },
+                map: map,
+                title: 'Start Point',
+                icon: {
+                    url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTIiIGZpbGw9IiMwMGE2NTAiLz4KPC9zdmc+',
+                    scaledSize: new google.maps.Size(30, 30)
+                }
+            });
+            markers.push(startMarker);
+
+            // Add goal markers
+            goals.forEach((goal, index) => {
+                const goalMarker = new google.maps.Marker({
+                    position: { lat: goal[0], lng: goal[1] },
+                    map: map,
+                    title: `Goal ${index + 1}`,
+                    icon: {
+                        url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTIiIGZpbGw9IiNmZjAwMDAiLz4KPC9zdmc+',
+                        scaledSize: new google.maps.Size(30, 30)
+                    }
+                });
+                markers.push(goalMarker);
+            });
+
+            // Create route polyline
+            const path = routeData.path.map(index => {
+                if (index === 0) return { lat: start[0], lng: start[1] };
+                return { lat: goals[index - 1][0], lng: goals[index - 1][1] };
+            });
+
+            routePolyline = new google.maps.Polyline({
+                path: path,
+                geodesic: true,
+                strokeColor: '#667eea',
+                strokeOpacity: 1.0,
+                strokeWeight: 3
+            });
+            routePolyline.setMap(map);
+
+            // Update results
+            document.getElementById('totalDistance').textContent = routeData.distance.toFixed(2);
+            document.getElementById('waypoints').textContent = routeData.path.length;
+
+            // Update route steps
+            const routeSteps = document.getElementById('routeSteps');
+            routeSteps.innerHTML = routeData.path.map((index, stepIndex) => {
+                const isStart = index === 0;
+                const coords = isStart ? start : goals[index - 1];
+                return `
+                    <div class="route-step">
+                        <div class="step-number">${stepIndex + 1}</div>
+                        <div>
+                            <div>${isStart ? 'Start Point' : `Goal ${index}`}</div>
+                            <div class="step-coords">${coords[0].toFixed(4)}, ${coords[1].toFixed(4)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Show results
+            document.getElementById('routeResults').classList.add('show');
+
+            // Fit map to show entire route
+            const bounds = new google.maps.LatLngBounds();
+            path.forEach(point => bounds.extend(point));
+            map.fitBounds(bounds);
+        }
+
+        // Export route
+        function exportRoute() {
+            const routeData = {
+                distance: document.getElementById('totalDistance').textContent,
+                waypoints: document.getElementById('waypoints').textContent,
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(routeData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'route_export.json';
+            link.click();
+        }
+
+        // Initialize
+        window.onload = function() {
+            // Check authentication
+            if (!localStorage.getItem('token')) {
+                window.location.href = 'auth.html';
+            }
+        };
+    </script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
+</body>
+</html>

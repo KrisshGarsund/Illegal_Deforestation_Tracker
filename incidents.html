@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incidents List - Illegal Deforestation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #28a745; }
+        .btn-info { background: #17a2b8; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn:hover { opacity: 0.8; }
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .filters h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .filter-group label {
+            font-weight: 500;
+            color: #333;
+        }
+        .filter-group input, .filter-group select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .incidents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1rem;
+        }
+        .incident-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .incident-card:hover {
+            transform: translateY(-2px);
+        }
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .incident-id {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .severity-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .severity-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .severity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        .incident-details {
+            margin-bottom: 1rem;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #666;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .incident-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-small {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+        }
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        .stats-bar {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        .stat-item h3 {
+            margin: 0;
+            color: #667eea;
+            font-size: 2rem;
+        }
+        .stat-item p {
+            margin: 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Incidents List</h1>
+        <div class="nav-buttons">
+            <a href="auth.html" class="btn btn-primary">Login</a>
+            <a href="map.html" class="btn btn-success">Map</a>
+            <a href="detection.html" class="btn btn-info">Detection</a>
+            <a href="assistant.html" class="btn btn-warning">Assistant</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <h3 id="totalIncidents">0</h3>
+                <p>Total Incidents</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="highSeverity">0</h3>
+                <p>High Severity</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="mediumSeverity">0</h3>
+                <p>Medium Severity</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="lowSeverity">0</h3>
+                <p>Low Severity</p>
+            </div>
+        </div>
+
+        <div class="filters">
+            <h3>🔍 Filters</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="severityFilter">Severity:</label>
+                    <select id="severityFilter">
+                        <option value="">All</option>
+                        <option value="high">High (50+)</option>
+                        <option value="medium">Medium (20-49)</option>
+                        <option value="low">Low (0-19)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchInput">Search:</label>
+                    <input type="text" id="searchInput" placeholder="Search by case ID...">
+                </div>
+                <div class="filter-group">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy">
+                        <option value="severity">Severity (High to Low)</option>
+                        <option value="severity-asc">Severity (Low to High)</option>
+                        <option value="date">Date (Newest)</option>
+                        <option value="date-asc">Date (Oldest)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button onclick="applyFilters()" class="btn btn-primary">Apply Filters</button>
+                    <button onclick="clearFilters()" class="btn btn-outline">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="incidentsContainer">
+            <div class="no-data">
+                <h3>Loading incidents...</h3>
+                <p>Please wait while we fetch the latest data.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allIncidents = [];
+        let filteredIncidents = [];
+
+        // Load incidents from API
+        async function loadIncidents() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8001/api/incidents', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    allIncidents = await response.json();
+                    filteredIncidents = [...allIncidents];
+                    displayIncidents();
+                    updateStats();
+                } else {
+                    showNoData('Failed to load incidents. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+                showNoData('Error loading incidents. Please check your connection.');
+            }
+        }
+
+        // Display incidents
+        function displayIncidents() {
+            const container = document.getElementById('incidentsContainer');
+            
+            if (filteredIncidents.length === 0) {
+                showNoData('No incidents found matching your criteria.');
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="incidents-grid">
+                    ${filteredIncidents.map(incident => createIncidentCard(incident)).join('')}
+                </div>
+            `;
+        }
+
+        // Create incident card HTML
+        function createIncidentCard(incident) {
+            const severityClass = getSeverityClass(incident.severity);
+            const severityText = getSeverityText(incident.severity);
+            
+            return `
+                <div class="incident-card">
+                    <div class="incident-header">
+                        <div class="incident-id">${incident.case_id}</div>
+                        <div class="severity-badge ${severityClass}">${severityText}</div>
+                    </div>
+                    <div class="incident-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Severity Score:</span>
+                            <span class="detail-value">${incident.severity}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">${incident.centroid[0].toFixed(4)}, ${incident.centroid[1].toFixed(4)}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Cells Affected:</span>
+                            <span class="detail-value">${incident.cells ? incident.cells.length : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Date Detected:</span>
+                            <span class="detail-value">${new Date().toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <div class="incident-actions">
+                        <button onclick="viewOnMap('${incident.case_id}')" class="btn btn-primary btn-small">View on Map</button>
+                        <button onclick="viewDetails('${incident.case_id}')" class="btn btn-outline btn-small">Details</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Get severity class for styling
+        function getSeverityClass(severity) {
+            if (severity >= 50) return 'severity-high';
+            if (severity >= 20) return 'severity-medium';
+            return 'severity-low';
+        }
+
+        // Get severity text
+        function getSeverityText(severity) {
+            if (severity >= 50) return 'High';
+            if (severity >= 20) return 'Medium';
+            return 'Low';
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const severityFilter = document.getElementById('severityFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredIncidents = allIncidents.filter(incident => {
+                // Severity filter
+                if (severityFilter === 'high' && incident.severity < 50) return false;
+                if (severityFilter === 'medium' && (incident.severity < 20 || incident.severity >= 50)) return false;
+                if (severityFilter === 'low' && incident.severity >= 20) return false;
+
+                // Search filter
+                if (searchInput && !incident.case_id.toLowerCase().includes(searchInput)) return false;
+
+                return true;
+            });
+
+            // Sort incidents
+            filteredIncidents.sort((a, b) => {
+                switch (sortBy) {
+                    case 'severity':
+                        return b.severity - a.severity;
+                    case 'severity-asc':
+                        return a.severity - b.severity;
+                    case 'date':
+                        return new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+                    case 'date-asc':
+                        return new Date(a.timestamp || 0) - new Date(b.timestamp || 0);
+                    default:
+                        return 0;
+                }
+            });
+
+            displayIncidents();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('severityFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sortBy').value = 'severity';
+            filteredIncidents = [...allIncidents];
+            displayIncidents();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = allIncidents.length;
+            const high = allIncidents.filter(i => i.severity >= 50).length;
+            const medium = allIncidents.filter(i => i.severity >= 20 && i.severity < 50).length;
+            const low = allIncidents.filter(i => i.severity < 20).length;
+
+            document.getElementById('totalIncidents').textContent = total;
+            document.getElementById('highSeverity').textContent = high;
+            document.getElementById('mediumSeverity').textContent = medium;
+            document.getElementById('lowSeverity').textContent = low;
+        }
+
+        // Show no data message
+        function showNoData(message) {
+            document.getElementById('incidentsContainer').innerHTML = `
+                <div class="no-data">
+                    <h3>${message}</h3>
+                    <p>Try adjusting your filters or check back later.</p>
+                </div>
+            `;
+        }
+
+        // View incident on map
+        function viewOnMap(caseId) {
+            window.location.href = `map.html?incident=${caseId}`;
+        }
+
+        // View incident details
+        function viewDetails(caseId) {
+            const incident = allIncidents.find(i => i.case_id === caseId);
+            if (incident) {
+                alert(`Incident Details:\n\nCase ID: ${incident.case_id}\nSeverity: ${incident.severity}\nLocation: ${incident.centroid[0].toFixed(4)}, ${incident.centroid[1].toFixed(4)}\nCells: ${incident.cells ? incident.cells.length : 'N/A'}`);
+            }
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            loadIncidents();
+        };
+    </script>
+</body>
+</html>

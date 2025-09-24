@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Illegal Deforestation Tracker</title>
+    <!-- Replace YOUR_GOOGLE_MAPS_API_KEY below with your Google Maps JS API key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Landing page with feature links -->
+      <div style="padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+          <h1 style="color: #333; margin-bottom: 1rem;">🌲 Illegal Deforestation Tracker</h1>
+          <p style="color: #666; font-size: 1.2rem; margin-bottom: 2rem;">Advanced AI-powered system for detecting and monitoring deforestation incidents</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Authentication</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Login or register to access the system</p>
+            <a href="auth.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">Go to Login</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏠</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Dashboard</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Main control panel and overview</p>
+            <a href="dashboard.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">Open Dashboard</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Map View</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Interactive map with incident visualization</p>
+            <a href="map.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">View Map</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Detection</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Upload and analyze satellite imagery</p>
+            <a href="detection.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #ffc107; color: #333; text-decoration: none; border-radius: 5px; font-weight: 500;">Start Detection</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Incidents</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Browse and manage detected incidents</p>
+            <a href="incidents.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #6f42c1; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">View Incidents</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Predictions</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">AI-powered hotspot predictions</p>
+            <a href="prediction.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #e83e8c; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">Generate Predictions</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🛣️</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">Routing</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Plan optimal field visit routes</p>
+            <a href="routing.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #20c997; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">Plan Route</a>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+            <h3 style="color: #333; margin-bottom: 1rem;">AI Assistant</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Get help from our AI assistant</p>
+            <a href="assistant.html" style="display: inline-block; padding: 0.75rem 1.5rem; background: #fd7e14; color: white; text-decoration: none; border-radius: 5px; font-weight: 500;">Ask AI</a>
+          </div>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; text-align: center;">
+          <h3 style="color: #333; margin-bottom: 1rem;">🚀 Quick Start</h3>
+          <p style="color: #666; margin-bottom: 1.5rem;">Get started with the Deforestation Tracker in just a few steps:</p>
+          <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+            <div style="text-align: center;">
+              <div style="background: #667eea; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-weight: bold;">1</div>
+              <p style="margin: 0; color: #666;">Login or Register</p>
+            </div>
+            <div style="text-align: center;">
+              <div style="background: #28a745; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-weight: bold;">2</div>
+              <p style="margin: 0; color: #666;">Upload Satellite Data</p>
+            </div>
+            <div style="text-align: center;">
+              <div style="background: #17a2b8; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-weight: bold;">3</div>
+              <p style="margin: 0; color: #666;">Analyze Results</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./index.js"></script>
+    <script>
+      // Fallback authentication functions
+      async function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+          const response = await fetch('http://127.0.0.1:8001/api/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, full_name: 'User' })
+          });
+          
+          const data = await response.json();
+          if (data.access_token) {
+            localStorage.setItem('token', data.access_token);
+            document.getElementById('auth-form').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('message').textContent = 'Login successful!';
+          } else {
+            document.getElementById('message').textContent = 'Login failed: ' + (data.detail || 'Invalid credentials');
+          }
+        } catch (error) {
+          document.getElementById('message').textContent = 'Error: ' + error.message;
+        }
+      }
+      
+      async function register() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const fullname = document.getElementById('fullname').value;
+        
+        try {
+          const response = await fetch('http://127.0.0.1:8001/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, full_name: fullname || 'User' })
+          });
+          
+          const data = await response.json();
+          if (data.access_token) {
+            localStorage.setItem('token', data.access_token);
+            document.getElementById('auth-form').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('message').textContent = 'Registration successful!';
+          } else {
+            document.getElementById('message').textContent = 'Registration failed: ' + (data.detail || 'User already exists');
+          }
+        } catch (error) {
+          document.getElementById('message').textContent = 'Error: ' + error.message;
+        }
+      }
+      
+      function logout() {
+        localStorage.removeItem('token');
+        document.getElementById('auth-form').style.display = 'block';
+        document.getElementById('app-content').style.display = 'none';
+        document.getElementById('message').textContent = 'Logged out successfully!';
+      }
+      
+      // Check if already logged in
+      if (localStorage.getItem('token')) {
+        document.getElementById('auth-form').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+      }
+    </script>
+  </body>
+</html>

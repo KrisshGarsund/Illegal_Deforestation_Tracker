@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotspot Prediction - Illegal Deforestation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #28a745; }
+        .btn-info { background: #17a2b8; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn:hover { opacity: 0.8; }
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .prediction-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+        .map-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .map-header {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .map-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .prediction-form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .prediction-form h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .prediction-results {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .prediction-results.show {
+            display: block;
+        }
+        .hotspot-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #ff6b6b;
+        }
+        .hotspot-item.high-risk {
+            border-left-color: #ff6b6b;
+            background: #fff5f5;
+        }
+        .hotspot-item.medium-risk {
+            border-left-color: #ffa726;
+            background: #fff8e1;
+        }
+        .hotspot-item.low-risk {
+            border-left-color: #66bb6a;
+            background: #f1f8e9;
+        }
+        .hotspot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .hotspot-id {
+            font-weight: bold;
+            color: #333;
+        }
+        .risk-score {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .risk-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .risk-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .risk-low {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .hotspot-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .hotspot-details p {
+            margin: 0.25rem 0;
+        }
+        .prediction-stats {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .stat-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        .stat-card p {
+            margin: 0;
+            color: #666;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .heatmap-legend {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        .legend-high { background: #ff6b6b; }
+        .legend-medium { background: #ffa726; }
+        .legend-low { background: #66bb6a; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Hotspot Prediction</h1>
+        <div class="nav-buttons">
+            <a href="auth.html" class="btn btn-primary">Login</a>
+            <a href="map.html" class="btn btn-success">Map</a>
+            <a href="incidents.html" class="btn btn-info">Incidents</a>
+            <a href="assistant.html" class="btn btn-warning">Assistant</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="prediction-stats">
+            <h3>📊 Prediction Overview</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4 id="totalHotspots">0</h4>
+                    <p>Predicted Hotspots</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="highRisk">0</h4>
+                    <p>High Risk Areas</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="mediumRisk">0</h4>
+                    <p>Medium Risk Areas</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="lowRisk">0</h4>
+                    <p>Low Risk Areas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="prediction-container">
+            <div class="map-section">
+                <div class="map-header">
+                    <h2>Risk Heatmap</h2>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <div class="controls-section">
+                <div class="heatmap-legend">
+                    <h4>Risk Level Legend</h4>
+                    <div class="legend-item">
+                        <div class="legend-color legend-high"></div>
+                        <span>High Risk (Score > 0.7)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-medium"></div>
+                        <span>Medium Risk (Score 0.4-0.7)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-low"></div>
+                        <span>Low Risk (Score < 0.4)</span>
+                    </div>
+                </div>
+
+                <div class="prediction-form">
+                    <h3>🔮 Generate Predictions</h3>
+                    
+                    <div class="form-group">
+                        <label for="predictionType">Prediction Type:</label>
+                        <select id="predictionType">
+                            <option value="incidents">Based on Recent Incidents</option>
+                            <option value="historical">Historical Analysis</option>
+                            <option value="seasonal">Seasonal Patterns</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timeHorizon">Time Horizon:</label>
+                        <select id="timeHorizon">
+                            <option value="1">1 Month</option>
+                            <option value="3" selected>3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="12">1 Year</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confidenceLevel">Confidence Level:</label>
+                        <select id="confidenceLevel">
+                            <option value="0.8">High (80%)</option>
+                            <option value="0.7" selected>Medium (70%)</option>
+                            <option value="0.6">Low (60%)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="generatePredictions()" class="btn btn-primary" style="width: 100%; padding: 1rem;">🚀 Generate Predictions</button>
+                </div>
+
+                <div id="loadingSection" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Analyzing patterns and generating predictions...</p>
+                </div>
+
+                <div id="predictionResults" class="prediction-results">
+                    <h3>🎯 Predicted Hotspots</h3>
+                    <div id="hotspotsList">
+                        <!-- Hotspots will be populated here -->
+                    </div>
+                    <button onclick="exportPredictions()" class="btn btn-success" style="width: 100%; margin-top: 1rem;">📤 Export Predictions</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let hotspots = [];
+        let markers = [];
+
+        // Initialize map
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 20.5, lng: 78.9 },
+                zoom: 6,
+                mapTypeId: 'terrain'
+            });
+        }
+
+        // Generate predictions
+        async function generatePredictions() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('predictionResults').classList.remove('show');
+
+            try {
+                // First get incidents
+                const incidentsResponse = await fetch('http://127.0.0.1:8001/api/incidents', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (incidentsResponse.ok) {
+                    const incidents = await incidentsResponse.json();
+                    const hotspots = await predictHotspots(incidents);
+                    displayPredictions(hotspots);
+                } else {
+                    throw new Error('Failed to load incidents');
+                }
+            } catch (error) {
+                console.error('Prediction error:', error);
+                alert('Prediction failed: ' + error.message);
+            } finally {
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+
+        // Predict hotspots (simulated)
+        async function predictHotspots(incidents) {
+            // Simulate prediction delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Generate synthetic hotspots based on incidents
+            const hotspots = [];
+            const predictionType = document.getElementById('predictionType').value;
+            const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+            const confidenceLevel = parseFloat(document.getElementById('confidenceLevel').value);
+
+            // Create hotspots around existing incidents
+            incidents.forEach((incident, index) => {
+                if (index < 5) { // Limit to top 5 incidents
+                    const baseScore = Math.random() * 0.8 + 0.2;
+                    const adjustedScore = baseScore * confidenceLevel;
+                    
+                    hotspots.push({
+                        case_id: `HOTSPOT_${String(index + 1).padStart(3, '0')}`,
+                        score: adjustedScore,
+                        centroid: [
+                            incident.centroid[0] + (Math.random() - 0.5) * 0.1,
+                            incident.centroid[1] + (Math.random() - 0.5) * 0.1
+                        ],
+                        confidence: confidenceLevel,
+                        timeHorizon: timeHorizon,
+                        predictionType: predictionType,
+                        riskLevel: getRiskLevel(adjustedScore)
+                    });
+                }
+            });
+
+            // Add some random hotspots
+            for (let i = 0; i < 3; i++) {
+                hotspots.push({
+                    case_id: `HOTSPOT_${String(i + 6).padStart(3, '0')}`,
+                    score: Math.random() * 0.9 + 0.1,
+                    centroid: [
+                        20.5 + (Math.random() - 0.5) * 2,
+                        78.9 + (Math.random() - 0.5) * 2
+                    ],
+                    confidence: confidenceLevel,
+                    timeHorizon: timeHorizon,
+                    predictionType: predictionType,
+                    riskLevel: getRiskLevel(Math.random() * 0.9 + 0.1)
+                });
+            }
+
+            return hotspots.sort((a, b) => b.score - a.score);
+        }
+
+        // Get risk level based on score
+        function getRiskLevel(score) {
+            if (score > 0.7) return 'high';
+            if (score > 0.4) return 'medium';
+            return 'low';
+        }
+
+        // Display predictions
+        function displayPredictions(hotspots) {
+            this.hotspots = hotspots;
+
+            // Update statistics
+            document.getElementById('totalHotspots').textContent = hotspots.length;
+            document.getElementById('highRisk').textContent = hotspots.filter(h => h.riskLevel === 'high').length;
+            document.getElementById('mediumRisk').textContent = hotspots.filter(h => h.riskLevel === 'medium').length;
+            document.getElementById('lowRisk').textContent = hotspots.filter(h => h.riskLevel === 'low').length;
+
+            // Display hotspots on map
+            displayHotspotsOnMap(hotspots);
+
+            // Display hotspots list
+            displayHotspotsList(hotspots);
+
+            // Show results
+            document.getElementById('predictionResults').classList.add('show');
+        }
+
+        // Display hotspots on map
+        function displayHotspotsOnMap(hotspots) {
+            // Clear existing markers
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+
+            hotspots.forEach(hotspot => {
+                const marker = new google.maps.Marker({
+                    position: { lat: hotspot.centroid[0], lng: hotspot.centroid[1] },
+                    map: map,
+                    title: `${hotspot.case_id} - Risk: ${hotspot.riskLevel}`,
+                    icon: {
+                        url: getHotspotIcon(hotspot.riskLevel),
+                        scaledSize: new google.maps.Size(30, 30)
+                    }
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div>
+                            <h4>${hotspot.case_id}</h4>
+                            <p><strong>Risk Score:</strong> ${(hotspot.score * 100).toFixed(1)}%</p>
+                            <p><strong>Risk Level:</strong> ${hotspot.riskLevel.toUpperCase()}</p>
+                            <p><strong>Confidence:</strong> ${(hotspot.confidence * 100).toFixed(0)}%</p>
+                            <p><strong>Time Horizon:</strong> ${hotspot.timeHorizon} months</p>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+
+                markers.push(marker);
+            });
+
+            // Fit map to show all hotspots
+            if (hotspots.length > 0) {
+                const bounds = new google.maps.LatLngBounds();
+                hotspots.forEach(hotspot => {
+                    bounds.extend({ lat: hotspot.centroid[0], lng: hotspot.centroid[1] });
+                });
+                map.fitBounds(bounds);
+            }
+        }
+
+        // Get hotspot icon based on risk level
+        function getHotspotIcon(riskLevel) {
+            const colors = {
+                high: '#ff6b6b',
+                medium: '#ffa726',
+                low: '#66bb6a'
+            };
+            const color = colors[riskLevel] || '#666';
+            return `data:image/svg+xml;base64,${btoa(`
+                <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="15" cy="15" r="12" fill="${color}" stroke="white" stroke-width="2"/>
+                    <circle cx="15" cy="15" r="6" fill="white"/>
+                </svg>
+            `)}`;
+        }
+
+        // Display hotspots list
+        function displayHotspotsList(hotspots) {
+            const hotspotsList = document.getElementById('hotspotsList');
+            
+            hotspotsList.innerHTML = hotspots.map(hotspot => `
+                <div class="hotspot-item ${hotspot.riskLevel}-risk">
+                    <div class="hotspot-header">
+                        <div class="hotspot-id">${hotspot.case_id}</div>
+                        <div class="risk-score risk-${hotspot.riskLevel}">
+                            ${(hotspot.score * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    <div class="hotspot-details">
+                        <p><strong>Location:</strong> ${hotspot.centroid[0].toFixed(4)}, ${hotspot.centroid[1].toFixed(4)}</p>
+                        <p><strong>Confidence:</strong> ${(hotspot.confidence * 100).toFixed(0)}%</p>
+                        <p><strong>Time Horizon:</strong> ${hotspot.timeHorizon} months</p>
+                        <p><strong>Type:</strong> ${hotspot.predictionType}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Export predictions
+        function exportPredictions() {
+            const exportData = {
+                hotspots: hotspots,
+                timestamp: new Date().toISOString(),
+                parameters: {
+                    predictionType: document.getElementById('predictionType').value,
+                    timeHorizon: document.getElementById('timeHorizon').value,
+                    confidenceLevel: document.getElementById('confidenceLevel').value
+                }
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'hotspot_predictions.json';
+            link.click();
+        }
+
+        // Initialize
+        window.onload = function() {
+            // Check authentication
+            if (!localStorage.getItem('token')) {
+                window.location.href = 'auth.html';
+            }
+        };
+    </script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
+</body>
+</html>

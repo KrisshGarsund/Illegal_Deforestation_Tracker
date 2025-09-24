@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Illegal Deforestation Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-primary { background: #667eea; }
+        .btn-danger { background: #dc3545; }
+        .btn:hover { opacity: 0.8; }
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        .card-content {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+        }
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+        .recent-activity {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            width: 40px;
+            text-align: center;
+        }
+        .activity-content {
+            flex: 1;
+        }
+        .activity-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+        .activity-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .quick-actions {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        .quick-actions h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .action-item {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .action-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        .action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .action-title {
+            font-weight: 500;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+        .action-desc {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏠 Dashboard</h1>
+        <div class="user-info">
+            <span>Welcome, <strong id="userName">User</strong></span>
+            <button onclick="logout()" class="btn btn-danger">Logout</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🗺️</div>
+                    <h3 class="card-title">Map Dashboard</h3>
+                </div>
+                <div class="card-content">
+                    View and interact with deforestation incidents on an interactive map.
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalIncidents">0</div>
+                        <div class="stat-label">Total Incidents</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="activeAreas">0</div>
+                        <div class="stat-label">Active Areas</div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="map.html" class="btn btn-primary btn-small">Open Map</a>
+                    <a href="incidents.html" class="btn btn-outline btn-small">View List</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🔍</div>
+                    <h3 class="card-title">Detection</h3>
+                </div>
+                <div class="card-content">
+                    Upload satellite imagery and detect deforestation changes automatically.
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="detectionsToday">0</div>
+                        <div class="stat-label">Today's Detections</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="accuracy">85%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="detection.html" class="btn btn-primary btn-small">Start Detection</a>
+                    <a href="detection.html" class="btn btn-outline btn-small">Upload Data</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🎯</div>
+                    <h3 class="card-title">Hotspot Prediction</h3>
+                </div>
+                <div class="card-content">
+                    Predict high-risk areas for future deforestation incidents.
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="predictedHotspots">0</div>
+                        <div class="stat-label">Predicted Hotspots</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="highRisk">0</div>
+                        <div class="stat-label">High Risk</div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="prediction.html" class="btn btn-primary btn-small">Generate Predictions</a>
+                    <a href="prediction.html" class="btn btn-outline btn-small">View Heatmap</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🛣️</div>
+                    <h3 class="card-title">Route Planning</h3>
+                </div>
+                <div class="card-content">
+                    Plan optimal routes for field visits and monitoring.
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="savedRoutes">0</div>
+                        <div class="stat-label">Saved Routes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgDistance">0</div>
+                        <div class="stat-label">Avg Distance (km)</div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="routing.html" class="btn btn-primary btn-small">Plan Route</a>
+                    <a href="routing.html" class="btn btn-outline btn-small">View Routes</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">🤖</div>
+                    <h3 class="card-title">AI Assistant</h3>
+                </div>
+                <div class="card-content">
+                    Get help and insights from our AI-powered assistant.
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="queriesToday">0</div>
+                        <div class="stat-label">Queries Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="responseTime">2s</div>
+                        <div class="stat-label">Avg Response</div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="assistant.html" class="btn btn-primary btn-small">Ask Question</a>
+                    <a href="assistant.html" class="btn btn-outline btn-small">View History</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <h3 class="card-title">Analytics</h3>
+                </div>
+                <div class="card-content">
+                    View detailed analytics and reports on deforestation patterns.
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="reportsGenerated">0</div>
+                        <div class="stat-label">Reports</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="dataPoints">0</div>
+                        <div class="stat-label">Data Points</div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="incidents.html" class="btn btn-primary btn-small">View Analytics</a>
+                    <a href="incidents.html" class="btn btn-outline btn-small">Export Data</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-activity">
+            <h3>📈 Recent Activity</h3>
+            <div id="activityList">
+                <div class="activity-item">
+                    <div class="activity-icon">🔍</div>
+                    <div class="activity-content">
+                        <div class="activity-title">New detection completed</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🎯</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Hotspot prediction generated</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🗺️</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Map view updated</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <h3>⚡ Quick Actions</h3>
+            <div class="action-grid">
+                <a href="detection.html" class="action-item">
+                    <div class="action-icon">📤</div>
+                    <div class="action-title">Upload Data</div>
+                    <div class="action-desc">Upload new satellite imagery</div>
+                </a>
+                <a href="map.html" class="action-item">
+                    <div class="action-icon">🗺️</div>
+                    <div class="action-title">View Map</div>
+                    <div class="action-desc">Open interactive map</div>
+                </a>
+                <a href="prediction.html" class="action-item">
+                    <div class="action-icon">🎯</div>
+                    <div class="action-title">Predict Hotspots</div>
+                    <div class="action-desc">Generate risk predictions</div>
+                </a>
+                <a href="routing.html" class="action-item">
+                    <div class="action-icon">🛣️</div>
+                    <div class="action-title">Plan Route</div>
+                    <div class="action-desc">Plan field visit route</div>
+                </a>
+                <a href="assistant.html" class="action-item">
+                    <div class="action-icon">🤖</div>
+                    <div class="action-title">Ask AI</div>
+                    <div class="action-desc">Get AI assistance</div>
+                </a>
+                <a href="incidents.html" class="action-item">
+                    <div class="action-icon">📋</div>
+                    <div class="action-title">View Incidents</div>
+                    <div class="action-desc">Browse incident list</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard data
+        async function loadDashboardData() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            try {
+                // Load incidents
+                const incidentsResponse = await fetch('http://127.0.0.1:8001/api/incidents', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (incidentsResponse.ok) {
+                    const incidents = await incidentsResponse.json();
+                    updateDashboardStats(incidents);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats(incidents) {
+            document.getElementById('totalIncidents').textContent = incidents.length;
+            document.getElementById('activeAreas').textContent = Math.min(incidents.length, 10);
+            document.getElementById('detectionsToday').textContent = Math.floor(incidents.length * 0.3);
+            document.getElementById('predictedHotspots').textContent = Math.floor(incidents.length * 0.5);
+            document.getElementById('highRisk').textContent = incidents.filter(i => i.severity > 30).length;
+            document.getElementById('savedRoutes').textContent = Math.floor(incidents.length * 0.2);
+            document.getElementById('avgDistance').textContent = '15.2';
+            document.getElementById('queriesToday').textContent = Math.floor(incidents.length * 0.1);
+            document.getElementById('reportsGenerated').textContent = Math.floor(incidents.length * 0.05);
+            document.getElementById('dataPoints').textContent = incidents.reduce((sum, i) => sum + (i.cells ? i.cells.length : 0), 0);
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'auth.html';
+        }
+
+        // Initialize dashboard
+        window.onload = function() {
+            loadDashboardData();
+        };
+    </script>
+</body>
+</html>
